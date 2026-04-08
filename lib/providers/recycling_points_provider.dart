@@ -102,7 +102,12 @@ class RecyclingPointsProvider extends ChangeNotifier {
     List<String>? acceptedTypes,
   }) async {
     try {
-      final existingPoint = _allPoints.firstWhere((p) => p.id == id);
+      final existingPoint = _allPoints.where((p) => p.id == id).firstOrNull;
+      if (existingPoint == null) {
+        _error = 'Пункт приёма не найден';
+        notifyListeners();
+        return false;
+      }
 
       final updatedPoint = existingPoint.copyWith(
         name: name,
@@ -138,10 +143,6 @@ class RecyclingPointsProvider extends ChangeNotifier {
   }
 
   RecyclingPoint? getPointById(int id) {
-    try {
-      return _allPoints.firstWhere((p) => p.id == id);
-    } catch (e) {
-      return null;
-    }
+    return _allPoints.where((p) => p.id == id).firstOrNull;
   }
 }

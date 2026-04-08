@@ -222,6 +222,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           TextButton(
             onPressed: () async {
               if (confirmController.text != 'УДАЛИТЬ') {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Введите "УДАЛИТЬ" для подтверждения'),
@@ -231,13 +232,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 return;
               }
 
+              if (!context.mounted) return;
               Navigator.pop(context);
 
               final authProvider =
                   Provider.of<AuthProvider>(context, listen: false);
               final success = await authProvider.deleteAccount();
 
-              if (success && mounted) {
+              if (!context.mounted) return;
+              
+              if (success) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('Аккаунт удалён'),
@@ -247,7 +251,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.of(context).pushReplacement(
                   MaterialPageRoute(builder: (_) => const LoginScreen()),
                 );
-              } else if (mounted) {
+              } else {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -434,25 +438,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.pop(dialogContext);
 
                 final authProvider =
-                    Provider.of<AuthProvider>(context, listen: false);
+                    Provider.of<AuthProvider>(dialogContext, listen: false);
                 final success = await authProvider.changePassword(
                   oldPassword: currentPasswordController.text,
                   newPassword: newPasswordController.text,
                 );
 
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        success
-                            ? 'Пароль успешно изменён'
-                            : authProvider.error ?? 'Ошибка смены пароля',
-                      ),
-                      backgroundColor:
-                          success ? Colors.green : Colors.red,
+                if (!context.mounted) return;
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Пароль успешно изменён'
+                          : authProvider.error ?? 'Ошибка смены пароля',
                     ),
-                  );
-                }
+                    backgroundColor:
+                        success ? Colors.green : Colors.red,
+                  ),
+                );
               },
               style: TextButton.styleFrom(foregroundColor: Colors.green),
               child: const Text('Сохранить'),

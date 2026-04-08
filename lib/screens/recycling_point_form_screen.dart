@@ -4,7 +4,7 @@ import '../providers/recycling_points_provider.dart';
 import '../models/recycling_point.dart';
 
 class RecyclingPointFormScreen extends StatefulWidget {
-  final dynamic point;
+  final RecyclingPoint? point;
 
   const RecyclingPointFormScreen({super.key, this.point});
 
@@ -34,10 +34,10 @@ class _RecyclingPointFormScreenState
     _addressController =
         TextEditingController(text: widget.point?.address ?? '');
     _latitudeController = TextEditingController(
-      text: widget.point?.latitude?.toString() ?? '',
+      text: widget.point != null ? widget.point!.latitude.toString() : '',
     );
     _longitudeController = TextEditingController(
-      text: widget.point?.longitude?.toString() ?? '',
+      text: widget.point != null ? widget.point!.longitude.toString() : '',
     );
     _descriptionController =
         TextEditingController(text: widget.point?.description ?? '');
@@ -68,7 +68,7 @@ class _RecyclingPointFormScreenState
 
     final success = _isEditing
         ? await provider.updatePoint(
-            id: widget.point.id,
+            id: widget.point!.id!,
             name: _nameController.text.trim(),
             address: _addressController.text.trim(),
             latitude: double.tryParse(_latitudeController.text.trim()),

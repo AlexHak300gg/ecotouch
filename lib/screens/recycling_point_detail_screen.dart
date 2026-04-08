@@ -5,7 +5,7 @@ import '../models/recycling_point.dart';
 import 'recycling_point_form_screen.dart';
 
 class RecyclingPointDetailScreen extends StatelessWidget {
-  final dynamic point;
+  final RecyclingPoint point;
 
   const RecyclingPointDetailScreen({super.key, required this.point});
 
@@ -203,14 +203,14 @@ class RecyclingPointDetailScreen extends StatelessWidget {
               _buildInfoRow(
                 Icons.access_time,
                 'Время работы',
-                point.workingHours,
+                point.workingHours!,
               ),
             if (point.workingHours != null) const SizedBox(height: 12),
             if (point.phone != null)
               _buildInfoRow(
                 Icons.phone,
                 'Телефон',
-                point.phone,
+                point.phone!,
                 isLink: true,
                 onTap: () {
                   // TODO: Открыть набор номера
@@ -347,18 +347,28 @@ class RecyclingPointDetailScreen extends StatelessWidget {
             child: const Text('Отмена'),
           ),
           TextButton(
-            onPressed: () {
-              context
-                  .read<RecyclingPointsProvider>()
-                  .deletePoint(point.id);
-              Navigator.pop(context);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Пункт удалён'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+            onPressed: () async {
+              final provider = context.read<RecyclingPointsProvider>();
+              final success = await provider.deletePoint(point.id!);
+              if (context.mounted) {
+                Navigator.pop(context); // Закрываем диалог
+                if (success) {
+                  Navigator.pop(context); // Возвращаемся на предыдущий экран
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Пункт удалён'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(provider.error ?? 'Ошибка удаления'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             child: const Text('Удалить'),

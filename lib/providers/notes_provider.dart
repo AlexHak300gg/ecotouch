@@ -8,13 +8,14 @@ class NotesProvider extends ChangeNotifier {
   final NotificationService _notifications = NotificationService.instance;
 
   List<Note> _notes = [];
+  List<Note> _filteredNotes = [];
   bool _isLoading = false;
   String? _error;
   String? _selectedCategory;
   NotePriority? _selectedPriority;
   String _searchQuery = '';
 
-  List<Note> get notes => _notes;
+  List<Note> get notes => _filteredNotes;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get selectedCategory => _selectedCategory;
@@ -37,6 +38,21 @@ class NotesProvider extends ChangeNotifier {
     }
   }
 
+  /// Применение фильтров к _notes и сохранение результата в _filteredNotes
+  void _applyFilters() {
+    var filtered = List<Note>.from(_notes);
+
+    if (_selectedCategory != null) {
+      filtered = filtered.where((n) => n.category == _selectedCategory).toList();
+    }
+
+    if (_selectedPriority != null) {
+      filtered = filtered.where((n) => n.priority == _selectedPriority).toList();
+    }
+
+    _filteredNotes = filtered;
+  }
+
   /// Поиск заметок
   Future<void> searchNotes(int userId, String query) async {
     _searchQuery = query;
@@ -44,11 +60,13 @@ class NotesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      List<Note> searchResults;
       if (query.isEmpty) {
-        _notes = await _db.getNotesByUser(userId);
+        searchResults = await _db.getNotesByUser(userId);
       } else {
-        _notes = await _db.searchNotes(userId, query);
+        searchResults = await _db.searchNotes(userId, query);
       }
+      _notes = searchResults;
       _applyFilters();
     } catch (e) {
       _error = 'Ошибка поиска: $e';
@@ -77,22 +95,8 @@ class NotesProvider extends ChangeNotifier {
     _selectedCategory = null;
     _selectedPriority = null;
     _searchQuery = '';
+    _applyFilters();
     notifyListeners();
-  }
-
-  /// Применение фильтров
-  void _applyFilters() {
-    var filtered = _notes;
-
-    if (_selectedCategory != null) {
-      filtered = filtered.where((n) => n.category == _selectedCategory).toList();
-    }
-
-    if (_selectedPriority != null) {
-      filtered = filtered.where((n) => n.priority == _selectedPriority).toList();
-    }
-
-    _notes = filtered;
   }
 
   /// Создание заметки
@@ -149,9 +153,10 @@ class NotesProvider extends ChangeNotifier {
     NotePriority? priority,
   }) async {
     try {
-      final existingNote = _notes.firstWhere((n) => n.id == id);
+      final existingNote = await _db.getNotesByUser(userId);
+      final note = existingNote.firstWhere((n) => n.id == id);
 
-      final updatedNote = existingNote.copyWith(
+      final updatedNote = note.copyWith(
         title: title,
         content: content,
         date: date,

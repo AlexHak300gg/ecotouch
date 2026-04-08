@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'providers/auth_provider.dart';
 import 'providers/notes_provider.dart';
 import 'providers/recycling_points_provider.dart';
@@ -8,6 +9,9 @@ import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Инициализация локали для intl (DateFormat)
+  await initializeDateFormatting('ru_RU', null);
 
   // Инициализация уведомлений
   await NotificationService.instance.init();

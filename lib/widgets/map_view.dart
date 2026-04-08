@@ -111,7 +111,7 @@ class _MapViewState extends State<MapView> {
         point: LatLng(point.latitude, point.longitude),
         width: 50,
         height: 50,
-        child: GestureDetector(
+        child: InkWell(
           onTap: () => widget.onPointTap?.call(point),
           child: _buildMarkerWidget(point),
         ),
